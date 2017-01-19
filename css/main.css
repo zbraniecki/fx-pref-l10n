@@ -1,0 +1,116 @@
+body {
+  background-color: white;
+}
+
+body > h1 {
+  margin-left: 42%;
+}
+
+div#ui {
+  width: 50%;
+  height: 100%;
+  float: left;
+}
+
+div#web {
+  width: 50%;
+  height: 100%;
+  float: right;
+}
+
+div#web > h1,
+div#ui > h1 {
+  padding-left: 10%;
+}
+
+div#ui-follow {
+  height: 5%;
+  padding: 3%;
+}
+
+div#ui-select {
+  height: 70%;
+  overflow: scroll;
+  padding-left: 10%;
+}
+
+div#web-follow {
+  height: 5%;
+  padding: 3%;
+}
+
+div#web-select {
+  height: 70%;
+  overflow: scroll;
+  padding-left: 10%;
+}
+
+div#ui-select.disabled {
+  opacity: 0.1; 
+}
+
+div#web-select.disabled {
+  opacity: 0.1; 
+}
+
+#view {
+  width: 800px;
+  border: 1px solid #444;
+  height: 80%;
+  margin: auto;
+  margin-top: 50px;
+  background-color: #ccc;
+  padding: 0;
+}
+
+.sortable {
+  width: 300px;
+  padding: 0;
+  margin: 0;
+}
+
+.sortable > li {
+  border: 1px solid black;
+  padding: 5px;
+  list-style: none outside none;
+  margin-bottom: 2px;
+  margin-top: 2px;
+  padding-left: 0;
+  padding-right: 15px;
+}
+
+.sortable > li.separator {
+  background-color: #444;
+  height: 3px;
+  padding: 0px;
+}
+
+.sortable > li.desc {
+  font-size: 0.8em;
+  line-height: 1.6em;
+  padding: 2px;
+  padding-left: 5px;
+}
+
+.sortable > li > span.handle {
+  cursor: pointer;
+}
+
+.sortable > li > span.pseudo_handle,
+.sortable > li > span.handle {
+  background-color: #ccc;
+  padding: 5px;
+  padding-left: 10px;
+  padding-right: 10px;
+  margin-right: 10px;
+}
+
+.sortable > li > input.select {
+  float: right;
+}
+
+.sortable > li > input.search {
+  float: right;
+  font-size: 0.8em;
+}
+

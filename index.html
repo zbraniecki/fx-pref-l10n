@@ -1,0 +1,39 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <script type="text/javascript" src="./js/main.js"></script>
+    <script type="text/javascript" src="./js/jquery.js"></script>
+    <script type="text/javascript" src="./js/jquery.sortable.js"></script>
+    <link rel="stylesheet" type="text/css" href="./css/main.css"></link>
+  </head>
+  <body onload="main()">
+    <h1>Languages</h1>
+    <div id="view">
+      <div id="ui">
+        <h1>Firefox</h1>
+        <div id="ui-follow">
+          <input type="checkbox" id="match-os" />
+          <label for="match-os">Use system languages for Firefox</label>
+        </div>
+        <div id="ui-select">
+          <ul id="sortable-with-handles" class="sortable list">
+          </ul>
+        </div>
+      </div>
+      <div id="web">
+        <h1>Web content</h1>
+        <div id="web-follow">
+          <input type="checkbox" id="match-app" />
+          <label for="match-app">Use Firefox languages for web content</label>
+        </div>
+        <div id="web-select">
+          <ul id="sortable-with-handles2" class="sortable list">
+          </ul>
+        </div>
+      </div>
+    </div>
+<script>
+
+</script>
+  </body>
+</html>
