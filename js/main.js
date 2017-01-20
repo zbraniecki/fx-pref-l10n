@@ -1,308 +1,382 @@
-var selected_locales = [
-  'fr-CH', 'de-CH'
-];
+{
 
-var locales = {
-  'ar': {'source_name': 'العربية', 'code': 'ar'},
-  'cs': {'source_name': 'čeština', 'code': 'cs'},
-  'da': {'source_name': 'Dansk', 'code': 'da'},
-  'de': {
-    'source_name': 'Deutsch',
-    'code': 'de',
-    'sub': {
-      'de-CH': {'source_name': 'Deutsch (Swiss)', 'code': 'de-CH'},
-      'de-DE': {'source_name': 'Deutsch (Deutschland)', 'code': 'de-DE'},
-    }
-  },
-  'el': {'source_name': 'Ελληνικά', 'code': 'el'},
-  'en': {'source_name': 'English', 'code': 'en'},
-  'es': {'source_name': 'Español', 'code': 'es'},
-  'fa': {'source_name': 'فارسی', 'code': 'fa'},
-  'fr': {
-    'source_name': 'français',
-    'code': 'fr',
-    'sub': {
-      'fr-BE': {'source_name': 'français (Belgique)', 'code': 'fr-BE'},
-      'fr-CA': {'source_name': 'français (Canadien)', 'code': 'fr-CA'},
-      'fr-FR': {'source_name': 'français (France)', 'code': 'fr-FR'},
-      'fr-CH': {'source_name': 'français (Swiss)', 'code': 'fr-CH'},
-    }
-  },
-  'hu': {'source_name': 'Magyar', 'code': 'hu'},
-  'hy': {'source_name': 'Հայերեն', 'code': 'hy'},
-  'it': {'source_name': 'italiano', 'code': 'it'},
-  'ja': {'source_name': '日本語', 'code': 'ja'},
-  'ko': {'source_name': '한국어', 'code': 'ko'},
-  'pl': {'source_name': 'polski', 'code': 'pl'},
-  'ru': {'source_name': 'Pyccĸий', 'code': 'ru'},
-  'sr-SR': {'source_name': 'Srpski', 'code': 'sr-SR'},
-  'sr-Cyrl': {'source_name': 'Српски', 'code': 'sr-Cyrl'},
-  'te': {'source_name': 'తెలుగు', 'code': 'te'},
-  'th': {'source_name': 'ภาษาไทย', 'code': 'th'},
-  'ur': {'source_name': 'اردو', 'code': 'ur'},
-  'zh': {'source_name': '中文', 'code': 'zh'},
-};
+  const downloading = {};
 
-var l10n_names = {
-  'en-US': {
-    'ar': 'Arabic',
-    'cs': 'Czech',
-    'de': 'German',
-    'el': 'Greek',
-    'en': 'English',
-    'es': 'Spanish',
-    'fa': 'Persian',
-    'fr': 'French',
-    'hu': 'Hungarian',
-    'hy': 'Armenian',
-    'it': 'Italian',
-    'ja': 'Japanese',
-    'ko': 'Korean',
-    'pl': 'Polish',
-    'ru': 'Russian',
-    'sr-SR': 'Serbian',
-    'sr-Cyrl': 'Serbian',
-    'te': 'Telugu',
-    'th': 'Thai',
-    'ur': 'Urdu',
-    'zh': 'Chinese',
-  }
-}
+  const l10nRegistryData = {
+    available: ['ar', 'cs', 'da', 'de', 'es', 'en', 'fa', 'fr'],
+    downloaded: ['de', 'es', 'en'],
+  };
 
-var filter = "";
+  const localeList = {
+    'ar': {
+      name: 'العربية'
+    },
+    'cs': {
+      name: 'čeština',
+    },
+    'da': {
+      name: 'Dansk'
+    },
+    'de': {
+      name: 'Deutsch'
+    },
+    'el': {
+      name: 'Ελληνικά'
+    },
+    'en': {
+      name: 'English'
+    },
+    'es': {
+      name: 'Español'
+    },
+    'fa': {
+      name: 'فارسی'
+    },
+    'fr': {
+      name: 'français'
+    },
+  };
 
-function updateSelectedLocales() {
-  var rootNode = document.getElementById('sortable-with-handles');
-
-  var childNodes = rootNode.childNodes;
-
-  var new_selected_locales = [];
-
-  for (var i = 0; i < childNodes.length; i++) {
-    if (childNodes[i].classList.contains('selected')) {
-      new_selected_locales.push(childNodes[i].dataset.code);
-    }
-  }
-
-  selected_locales = new_selected_locales;
-  console.dir(selected_locales);
-}
-
-function toggleSelected(e) {
-  var elem = e.target;
-  var code = elem.parentNode.dataset.code; 
-
-  var pos = selected_locales.indexOf(code);
-  if (pos !== -1) {
-    delete selected_locales[pos];
-  } else {
-    selected_locales.push(code);
-  }
-  drawList();
-}
-
-function onSearch(e) {
-  var elem = e.target;
-  var val = elem.value;
-
-  filter = val;
-  drawAvailableList();
-}
-
-function findLocale(code, root) {
-  if (!root) {
-    root = locales;
-  }
-  if (root[code]) {
-    return root[code];
-  }
-  for (var i in root) {
-    var subRoot = root[i];
-    if (subRoot.sub) {
-      var ret = findLocale(code, subRoot.sub);
-      if (ret) {
-        return ret;
+  const initialSetup = {
+    system: {
+      ui: {
+        selected: ['en'],
+        available: Object.keys(localeList)
+      }
+    },
+    app: {
+      ui: {
+        follow: true,
+        selected: [],
+        available: Object.keys(localeList)
+      },
+      content: {
+        follow: true,
+        selected: [],
+        available: Object.keys(localeList)
       }
     }
   }
-  return false;
-}
 
-function buildRow(locale, sortable, index) {
-  if (!index) {
-    index = 0;
+  const setup = {
+    system: {
+      ui: {
+        selectedSortable: null,
+        availableSortable: null,
+        selected: [],
+        available: []
+      }
+    },
+    app: {
+      ui: {
+        selectedSortable: null,
+        availableSortable: null,
+        follow: true,
+        selected: [],
+        available: []
+      },
+      content: {
+        selectedSortable: null,
+        availableSortable: null,
+        follow: true,
+        selected: [],
+        available: []
+      }
+    }
   }
-  var li = document.createElement('li');
 
-  li.dataset.code = locale.code;
-  
+  function download(code) {
+    if (downloading.hasOwnProperty(code)) {
+      return false;
+    }
+    if (l10nRegistryData.downloaded.includes(code)) {
+      return false;
+    };
 
-  if (sortable) {
-    li.classList.add('selected');
-    var span = document.createElement('span');
-    span.classList.add('handle');
-    span.textContent = '::';
+
+    downloading[code] = 0;
+
+    let I = setInterval(function() {
+      let list = document.querySelectorAll('#app > .languages .ui .selected li');
+
+      let elem = null;
+      for (let li of list) {
+        if (li.dataset.code === code) {
+          elem = li;
+        }
+      }
+
+      if (!elem) {
+        return false;
+      }
+
+
+      let lvl = downloading[code] += 10;
+      elem.querySelector('.download').textContent = `[⇩${lvl}%]`;
+
+      if (lvl === 100) {
+        I = clearInterval(I);
+        l10nRegistryData.downloaded.push(code);
+        delete downloading[code];
+        elem.removeChild(elem.querySelector('.download'));
+      }
+    }, 300);
+  }
+
+  function getSelectedLocale(name, col) {
+    let locales = getSelectedLocales(name, col);
+    return locales[0];
+  }
+
+  function getSelectedLocales(name, col) {
+    if (name === 'system') {
+      return setup[name][col].selected.slice();
+    }
+
+    if (name === 'app' && col === 'ui') {
+      if (setup[name][col].follow) {
+        return getSelectedLocales('system', 'ui');
+      } else {
+        return setup.app.ui.selected.slice();
+      }
+    }
+
+    if (name === 'app' && col === 'content') {
+      if (setup[name][col].follow) {
+        return getSelectedLocales('app', 'ui');
+      } else {
+        return setup.app.content.selected.slice();
+      }
+    }
+  }
+
+  function buildRow(loc, code, os = false, download = false, unavailable = false) {
+    const li = document.createElement('li');
+    const div = document.createElement('div');
+    li.appendChild(div);
+
+    const span = document.createElement('span');
+    span.textContent = loc.name;
+    span.classList.add('name');
     li.appendChild(span);
-  } else {
-    var span = document.createElement('span');
-    span.classList.add('pseudo_handle');
-    span.innerHTML = "&nbsp;&nbsp;";
-    li.appendChild(span);
-  }
 
-  var span = document.createElement('span');
-
-  var prefix = '';
-  for (var i=0; i < index; i++) {
-    prefix += '&nbsp;&nbsp;&nbsp;&nbsp;';
-  }
-  span.innerHTML = prefix + locale['source_name'];
-  li.appendChild(span);
-
-  var checkbox = document.createElement('input');
-  checkbox.classList.add('select');
-  checkbox.setAttribute('type', 'checkbox');
-  checkbox.addEventListener('click', toggleSelected);
-
-  if (sortable) {
-    checkbox.setAttribute('checked', 'checkbox');
-  }
-  li.appendChild(checkbox);
-  return li;
-}
-
-function buildHR() {
-  var li = document.createElement('li');
-  li.classList.add('separator');
-
-  return li;
-}
-
-function buildDesc(desc) {
-  var li = document.createElement('li');
-  li.classList.add('desc');
-  li.textContent = desc;
-
-  if (desc === 'available:') {
-    var search = document.createElement('input');
-    search.setAttribute('type', 'text');
-    search.classList.add('search');
-    search.addEventListener('keyup', onSearch);
-    li.appendChild(search);
-  }
-
-  return li;
-}
-
-function drawLocales(rootNode, locales, index) {
-  for(var i in locales) {
-    var locale = locales[i];
-
-    if (selected_locales.indexOf(locale.code) !== -1) {
-      continue;
+    if (os) {
+      const span = document.createElement('span');
+      span.classList.add('info');
+      span.textContent = '[OS]';
+      span.title = 'System Locale, cannot be removed';
+      li.appendChild(span);
     }
 
-    if (filter) {
-      var fil = filter.toLowerCase();
-      var match = false;
-
-      var source_name = locale.source_name.toLowerCase();
-      if (source_name.startsWith(fil)) {
-        match = true;
-      }
-
-      var code = locale.code.toLowerCase();
-      if (code.startsWith(fil)) {
-        match = true;
-      }
-
-      var l10n_name = l10n_names['en-US'][locale.code];
-      if (l10n_name && l10n_name.toLowerCase().startsWith(fil)) {
-        match = true;
-      }
-      if (!match) {
-        continue;
-      }
+    if (download) {
+      const span = document.createElement('span');
+      span.classList.add('info');
+      span.classList.add('download');
+      span.textContent = '[⇩]';
+      span.title = 'Locale available for download';
+      li.appendChild(span);
     }
 
-    var li = buildRow(locale, false, index);
-    rootNode.appendChild(li);
+    if (unavailable) {
+      const span = document.createElement('span');
+      span.classList.add('info');
+      span.textContent = '[❌]';
+      span.title = 'Locale unavailable';
+      li.appendChild(span);
+    }
 
-    if (locale.sub) {
-      drawLocales(rootNode, locale.sub, index+1);
+    li.dataset.code = code;
+    return li;
+  }
+
+  function drawList(name, col, type, locales) {
+    let list = document.querySelector(`#${name} > .languages .${col} .${type} > ul`);
+    while (list.lastChild) {
+      list.removeChild(list.lastChild);
+    }
+
+    let systemLocale = getSelectedLocale('system', 'ui');
+    for (const code of locales) {
+      const loc = localeList[code]; 
+      if (!l10nRegistryData.downloaded.includes(code) &&
+        l10nRegistryData.available.includes(code)) {
+        download(code);
+      }
+      var li = buildRow(
+        loc,
+        code,
+        name === 'app' && col === 'ui' && code === systemLocale,
+        name === 'app' && col === 'ui' && !l10nRegistryData.downloaded.includes(code) && l10nRegistryData.available.includes(code),
+        name === 'app' && col === 'ui' && !l10nRegistryData.available.includes(code)
+      );
+      list.appendChild(li);
     }
   }
-}
 
-function drawList(id) {
-  var rootNode = document.getElementById(id);
+  function onListUpdated(name, col) {
+    let result = [];
 
-  while (rootNode.lastChild) {
-    rootNode.removeChild(rootNode.lastChild);
+    let elem = document.querySelector(`#${name} .languages .${col} .selected .locale-list`);
+    for (let li of elem.querySelectorAll('li')) {
+      result.push(li.dataset.code);
+    }
+    setup[name][col].selected = result;
+
+    updateList(name, col, result);
   }
 
-  rootNode.appendChild(buildDesc('selected:'));
-  for (var i in selected_locales) {
-    var code = selected_locales[i];
-    var locale = findLocale(code);
-    var li = buildRow(locale, true);
-    rootNode.appendChild(li);
+  function updateList(name, col, result) {
+    setup[name][col].selected = result;
+    drawCol(name, col);
+
+    if (name === 'system' && col === 'ui') {
+      if (setup.app.ui.follow) {
+        updateList('app', 'ui', result);
+      } else {
+        drawCol('app', 'ui');
+        drawCol('app', 'content');
+      }
+    }
+    if (name === 'app' && col === 'ui') {
+      if (setup.app.content.follow) {
+        updateList('app', 'content', result);
+      } else {
+        drawCol('app', 'content');
+      }
+    }
   }
 
-  rootNode.appendChild(buildHR());
-
-  rootNode.appendChild(buildDesc('available:'));
-
-  drawLocales(rootNode, locales, 0);
-
-
-  $('.sortable').sortable({
-    handle: 'span',
-    items: '.selected',
-  });
-}
-
-function drawAvailableList() {
-  var rootNode = document.getElementById('sortable-with-handles');
-
-  while (rootNode.lastChild &&
-         rootNode.lastChild.classList.contains('desc') === false) {
-    rootNode.removeChild(rootNode.lastChild);
+  function filter(list, term) {
+    for (let el of list.querySelectorAll('li')) {
+      if (!el.childNodes[1].textContent.toLowerCase().includes(term.toLowerCase())) {
+        el.classList.add('hidden');
+      } else {
+        el.classList.remove('hidden');
+      }
+    }
   }
-  drawLocales(rootNode, locales, 0);
-}
 
-function updateUI() {
-  let matchos = $('#match-os').prop('checked');
-  if (matchos) {
-    $('#ui-select').addClass('disabled');
-  } else {
-    $('#ui-select').removeClass('disabled');
+  function drawCol(name, col) {
+    let selectedLocales = getSelectedLocales(name, col);
+
+    let availableLocales = setup[name][col].available.filter(loc => {
+      return !selectedLocales.includes(loc);
+    });
+    drawList(name, col, 'available', availableLocales);
+    drawList(name, col, 'selected', selectedLocales);
+  }
+
+  function setupList(name, col) {
+    setup[name][col].selected = initialSetup[name][col].selected.slice();
+    setup[name][col].available = initialSetup[name][col].available.slice();
+
+
+    let availableList = document.querySelector(`#${name} > .languages .${col} .available > ul`);
+    let selectedList = document.querySelector(`#${name} > .languages .${col} .selected > ul`);
+    
+    setup[name][col].availableSortable = Sortable.create(availableList, {
+      group: `${name}-${col}-locales`,
+      sort: false,
+      onMove: function(evt) {
+        if (name === 'app' && col === 'ui') {
+          let item = evt.dragged;
+
+          if (!l10nRegistryData.available.includes(item.dataset.code)) {
+            return false;
+          }
+        }
+      },
+    });
+
+    setup[name][col].selectedSortable = Sortable.create(selectedList, {
+      group: {
+        name: `${name}-${col}-locales`,
+        put: true,
+        pull: function(to, from) {
+          return from.el.children.length > 1;
+
+        },
+      },
+      onSort: function(evt) {
+        if (name === 'app' && col === 'ui') {
+          if (evt.newIndex === 0) {
+            let val = confirm(`
+You're about to change your locale.\nIf this was not your intention press "Cancel".\n
+Jezeli chcesz zmienic jezyk, nacisnij "OK".`);
+
+            if (val === false) {
+            }
+          }
+        }
+        onListUpdated(name, col, evt.target);
+      },
+      onMove: function(evt) {
+        if (name === 'app' && col === 'ui') {
+          let item = evt.dragged;
+          let systemLocale = getSelectedLocale('system', 'ui');
+          if (item.dataset.code === systemLocale) {
+            return false;
+          }
+        }
+      },
+    });
+
+    drawCol(name, col);
+
+    let input = document.querySelector(`#${name} > .languages .${col} .available input`);
+    input.addEventListener('keyup', function(evt) {
+      let term = input.value;
+      let list = document.querySelector(`#${name} > .languages .${col} .available > ul`);
+      filter(list, term);
+    });
+
+    let follow = document.querySelector(`#${name} > .languages .${col} .follow`);
+
+    if (follow) {
+      setup[name][col].follow = initialSetup[name][col].follow;
+      setFollowStatus(name, col);
+
+      let input = document.querySelector(`#${name} > .languages .${col} .follow input`);
+      input.addEventListener('change', function(evt) {
+        if (input.checked) {
+          setup[name][col].follow = true;
+          setFollowStatus(name, col);
+          onListUpdated(name, col);
+        } else {
+          setup[name][col].follow = false;
+          setFollowStatus(name, col);
+        }
+      });
+    }
+  }
+
+
+  function setFollowStatus(name, col) {
+    let input = document.querySelector(`#${name} > .languages .${col} .follow input`);
+    let colNode = document.querySelector(`#${name} > .languages .${col}`);
+    if (setup[name][col].follow) {
+      colNode.classList.add('follow');
+      input.checked = true;
+      setup[name][col].selectedSortable.option('disabled', true);
+      setup[name][col].availableSortable.option('disabled', true);
+    } else {
+      colNode.classList.remove('follow');
+      input.checked = false;
+      setup[name][col].selectedSortable.option('disabled', false);
+      setup[name][col].availableSortable.option('disabled', false);
+      if (name === 'app' && col === 'ui') {
+        setup.app.ui.selected = getSelectedLocales('system', 'ui');
+      }
+      if (name === 'app' && col === 'content') {
+        setup.app.content.selected = getSelectedLocales('app', 'ui');
+      }
+    }
+  }
+
+
+  function main() {
+    setupList('system', 'ui');
+    setupList('app', 'ui');
+    setupList('app', 'content');
   }
 }
-
-function updateApp() {
-  let matchapp = $('#match-app').prop('checked');
-  if (matchapp) {
-    $('#web-select').addClass('disabled');
-  } else {
-    $('#web-select').removeClass('disabled');
-  }
-}
-
-function main() {
-  $('#match-os').prop('checked', true);
-  $('#match-os').change(updateUI);
-  updateUI();
-  $('#match-app').prop('checked', true);
-  $('#match-app').change(updateApp);
-  updateApp();
-
-  drawList('sortable-with-handles');
-  drawList('sortable-with-handles2');
-
-  $('.sortable').sortable({
-    handle: 'span',
-  }).bind('sortupdate', updateSelectedLocales);
-}
-
