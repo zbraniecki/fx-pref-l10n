@@ -3,7 +3,7 @@
   const downloading = {};
 
   const l10nRegistryData = {
-    available: ['ar', 'cs', 'da', 'de', 'es', 'en', 'fa', 'fr'],
+    available: ['ar', 'cs', 'da', 'de', 'es', 'en', 'fa', 'fr', 'hu', 'hy', 'it', 'ja', 'ko', 'pl', 'ru', 'ur', 'zh'],
     downloaded: ['de', 'es', 'en'],
   };
 
@@ -35,6 +35,42 @@
     'fr': {
       name: 'français'
     },
+    'hu': {
+      name: 'Magyar'
+    },
+    'hy': {
+      name: 'Հայերեն'
+    },
+    'it': {
+      name: 'italiano'
+    },
+    'ja': {
+      name: '日本語'
+    },
+    'ko': {
+      name: '한국어'
+    },
+    'pl': {
+      name: 'polski'
+    },
+    'ru': {
+      name: 'Pyccĸий'
+    },
+    'sr-SR': {
+      name: 'Srpski'
+    },
+    'sr-Cyrl': {
+      name: 'Српски'
+    },
+    'th': {
+      name: 'ภาษาไทย'
+    },
+    'ur': {
+      name: 'اردو'
+    },
+    'zh': {
+      name: '中文'
+    }
   };
 
   const initialSetup = {
@@ -135,7 +171,9 @@
 
     if (name === 'app' && col === 'ui') {
       if (setup[name][col].follow) {
-        return getSelectedLocales('system', 'ui');
+        return getSelectedLocales('system', 'ui').filter(elem => {
+          return l10nRegistryData.available.includes(elem);
+        });
       } else {
         return setup.app.ui.selected.slice();
       }
@@ -150,14 +188,19 @@
     }
   }
 
-  function buildRow(loc, code, os = false, download = false, unavailable = false) {
+  function buildRow(loc, code, info = false, os = false, download = false, unavailable = false) {
     const li = document.createElement('li');
     const div = document.createElement('div');
+    if (info) {
+      div.textContent = "🛈 ";
+      div.title = 'Clicking here should open a small window with info about langpack, and delete option'
+    }
     li.appendChild(div);
 
     const span = document.createElement('span');
     span.textContent = loc.name;
     span.classList.add('name');
+    span.title = '[locale name in the current locale]'
     li.appendChild(span);
 
     if (os) {
@@ -205,6 +248,7 @@
       var li = buildRow(
         loc,
         code,
+        name === 'app' && col === 'ui',
         name === 'app' && col === 'ui' && code === systemLocale,
         name === 'app' && col === 'ui' && !l10nRegistryData.downloaded.includes(code) && l10nRegistryData.available.includes(code),
         name === 'app' && col === 'ui' && !l10nRegistryData.available.includes(code)
@@ -230,19 +274,11 @@
     drawCol(name, col);
 
     if (name === 'system' && col === 'ui') {
-      if (setup.app.ui.follow) {
-        updateList('app', 'ui', result);
-      } else {
-        drawCol('app', 'ui');
-        drawCol('app', 'content');
-      }
+      drawCol('app', 'ui');
+      drawCol('app', 'content');
     }
     if (name === 'app' && col === 'ui') {
-      if (setup.app.content.follow) {
-        updateList('app', 'content', result);
-      } else {
-        drawCol('app', 'content');
-      }
+      drawCol('app', 'content');
     }
   }
 
